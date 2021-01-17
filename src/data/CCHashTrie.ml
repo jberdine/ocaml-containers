@@ -139,28 +139,6 @@ module type KEY = sig
   val hash : t -> int
 end
 
-(*
-  from https://en.wikipedia.org/wiki/Hamming_weight
-
-  //This uses fewer arithmetic operations than any other known
-  //implementation on machines with slow multiplication.
-  //It uses 17 arithmetic operations.
-  int popcount_2(uint64_t x) {
-    x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
-    x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits
-    x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits
-    x += x >>  8;  //put count of each 16 bits into their lowest 8 bits
-    x += x >> 16;  //put count of each 32 bits into their lowest 8 bits
-    x += x >> 32;  //put count of each 64 bits into their lowest 8 bits
-    return x & 0x7f;
-  }
-
-   m1 = 0x5555555555555555
-   m2 = 0x3333333333333333
-   m4 = 0x0f0f0f0f0f0f0f0f
-
-   We use Int64 for our 64-bits popcount.
-*)
 module I64 = struct
   type t = Int64.t
   let (+) = Int64.add
@@ -172,15 +150,7 @@ module I64 = struct
   let lnot = Int64.lognot
 end
 
-let popcount (b:I64.t) : int =
-  let open I64 in
-  let b = b - ((b lsr 1) land 0x5555555555555555L) in
-  let b = (b land 0x3333333333333333L) + ((b lsr 2) land 0x3333333333333333L) in
-  let b = (b + (b lsr 4)) land 0x0f0f0f0f0f0f0f0fL in
-  let b = b + (b lsr 8) in
-  let b = b + (b lsr 16) in
-  let b = b + (b lsr 32) in
-  Int64.to_int (b land 0x7fL)
+let popcount (b:I64.t) : int = Popcount.popcount_stub b
 
 (*$T
   popcount 5L = 2
